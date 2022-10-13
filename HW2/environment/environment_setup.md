@@ -3,7 +3,7 @@
 1. Refer to the EdStem post about [VS Code and Anaconda Setup Guide](https://edstem.org/us/courses/25005/discussion/1692735) if you do not already have Anaconda or Miniconda installed.
 2. Create a conda environment from the .yml files provided in `/environment` folder:
     - If you are running windows, use the Conda Prompt, on Mac or Linux you can just use the Terminal.
-    - Use the command: `conda env create -f ml_hw2_env_<OS>.yml`
+    - Use the command: `conda env create -f ml_hw2_env_win.yml`
     - Make sure to modify the command based on your OS (`linux`, `mac`, or `win`).
     - This should create an environment named `ml_hw2`. 
 3. Activate the conda environment:
