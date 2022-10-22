@@ -33,8 +33,12 @@ class GMM(object):
         Hint:
             Add keepdims=True in your np.sum() function to avoid broadcast error. 
         """
+        no_explode = logit - np.max(logit, axis = 1, keepdims=True)
+        power_of_e = np.exp(no_explode)
+        sums = np.sum(power_of_e, axis = 1, keepdims=True)
 
-        raise NotImplementedError
+        softmax = power_of_e / sums
+        return softmax
 
     def logsumexp(self, logit):  # [5pts]
         """
@@ -45,8 +49,13 @@ class GMM(object):
         Hint:
             The keepdims parameter could be handy
         """
+        no_explode = logit - np.max(logit, axis = 1, keepdims=True)
+        removed_vals = np.max(logit, axis = 1, keepdims=True)
+        power_of_e = np.exp(no_explode)
+        sums = np.sum(power_of_e, axis = 1, keepdims=True)
 
-        raise NotImplementedError
+        logsumexp = np.log(sums) + removed_vals
+        return logsumexp
 
     # for undergraduate student
     def normalPDF(self, points, mu_i, sigma_i):  # [5pts]
@@ -61,8 +70,18 @@ class GMM(object):
         Hint:
             np.diagonal() should be handy.
         """
+        # sqrt(2 * sigma^2) -> sigma  (x_i - mu_i)^2 -> sub
+        # (-1/2 * sigma^2) * (x_i - mu_i)^2 -> right side
+        # (1/sqrt(2 * pi * sigma^2)) - > left side
+        sigma = np.array(2 * np.diagonal(sigma_i), dtype = float)
+        sub = np.array((points - mu_i)**2)
+        right_side = -1/sigma * sub
+        left_side = 1/np.sqrt(sigma * np.pi)
 
-        raise NotImplementedError
+        pdf = np.prod((left_side * np.exp(right_side)), axis = 1)
+        return pdf
+
+
 
     # for grad students
     def multinormalPDF(self, points, mu_i, sigma_i):  # [5pts]
@@ -93,7 +112,11 @@ class GMM(object):
                 You will have KxDxD numpy array for full covariance matrix case
         """
         np.random.seed(5) #Do not remove this line!
-        raise NotImplementedError
+        pi = np.array([1] * self.K)
+        mu = self.points[int(np.random.uniform())]
+        sigma = np.array([np.eye(self.points.shape[0])] * self.K)
+
+        return pi, mu, sigma
 
     def _ll_joint(self, pi, mu, sigma, full_matrix=FULL_MATRIX, **kwargs):  # [10 pts]
         """
@@ -114,7 +137,15 @@ class GMM(object):
         # === undergraduate implementation
         #if full_matrix is False:
             # ...
-        raise NotImplementedError
+        for i in range(self.K):
+            left_side = np.log(LOG_CONST + pi[i])
+            right_side = np.log(LOG_CONST + self.normalPDF(self.points, mu[i], sigma[i]), keepdims=True)
+            likelihood = left_side + right_side
+            if ll is None:
+                ll = likelihood
+            else:
+                ll = np.hstack((ll, likelihood))
+        return ll
 
     def _E_step(self, pi, mu, sigma, full_matrix = FULL_MATRIX , **kwargs):  # [5pts]
         """
@@ -137,8 +168,8 @@ class GMM(object):
         # === undergraduate implementation
         #if full_matrix is False:
             # ...
-
-        raise NotImplementedError
+        gamma = self.softmax(self._ll_joint(pi, mu, sigma))
+        return gamma
 
     def _M_step(self, gamma, full_matrix=FULL_MATRIX, **kwargs):  # [10pts]
         """

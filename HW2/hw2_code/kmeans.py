@@ -24,19 +24,21 @@ class KMeans(object):
         Hint: Please initialize centers by randomly sampling points from the dataset in case the autograder fails.
         """
 
-        raise NotImplementedError
+        centers = points[np.random.choice(np.linspace(0, len(points) - 1, len(points), dtype=int), size=K)]
+        return centers
 
     def _kmpp_init(self, points, K, **kwargs): # [3 pts]
         """
         Args:
             points: NxD numpy array, where N is # points and D is the dimensionality
             K: number of clusters
-            kwargs: any additional arguments you want
+            kwargs: any additional arguments you want 
         Return:
             centers: K x D numpy array, the centers.
         """
         
-        raise NotImplementedError
+        centers = points[np.random.choice(np.linspace(0, len(points) - 1, len(points), dtype=int), size=K)]
+        return centers
 
     def _update_assignment(self, centers, points):  # [10 pts]
         """
@@ -49,7 +51,8 @@ class KMeans(object):
         Hint: You could call pairwise_dist() function.
         """
         
-        raise NotImplementedError
+        cluster_idx = np.argmin(pairwise_dist(points, centers), axis = 1)
+        return cluster_idx
 
     def _update_centers(self, old_centers, cluster_idx, points):  # [10 pts]
         """
@@ -62,7 +65,16 @@ class KMeans(object):
 
         HINT: Points may be integer, but the centers should not have to be. Watch out for dtype casting!
         """
-        raise NotImplementedError
+        centers = []
+        for i, center in enumerate(old_centers):
+            poss_centers = points[cluster_idx == i]
+
+            if len(poss_centers) != 0:
+                center = np.mean(poss_centers)
+                centers.append(center)
+            else:
+                centers.append(center)
+        return np.array(centers).astype(old_centers[0,0])
 
     def _get_loss(self, centers, cluster_idx, points):  # [5 pts]
         """
@@ -73,7 +85,11 @@ class KMeans(object):
         Return:
             loss: a single float number, which is the objective function of KMeans.
         """
-        raise NotImplementedError
+        loss = 0
+        for i, center in enumerate(centers):
+            clustered_points = points[i == cluster_idx]
+            loss += np.sum((clustered_points[:,:] - center) ** 2)
+        return loss
 
     def _get_centers_mapping(self, points, cluster_idx, centers):
         # This function has been implemented for you, no change needed.
@@ -131,7 +147,8 @@ def pairwise_dist(x, y):  # [5 pts]
                 dist: N x M array, where dist2[i, j] is the euclidean distance between
                 x[i, :] and y[j, :]
     """
-    raise NotImplementedError
+    dist = np.linalg.norm(x[:, None] - y[None, :], axis = -1)
+    return dist
 
 def silhouette_coefficient(points, cluster_idx, centers, centers_mapping): # [10pts]
     """
